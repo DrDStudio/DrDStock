@@ -1,26 +1,36 @@
 import os
+from google import genai  # Cấu trúc mới của thư viện google-genai
 from vnstock import *
-import google.generativeai as genai
 
-# 1. Kiểm tra API Key có tồn tại không
+# 1. Lấy API Key từ Secrets
 api_key = os.environ.get("GEMINI_API_KEY")
 
-if not api_key:
-    # Nếu không thấy Key, in thông báo này ra file HTML luôn
-    result = "LỖI: GitHub chưa nhận được API Key. Hãy kiểm tra lại mục Secrets."
-else:
+def run_bot():
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        if not api_key:
+            return "LỖI: Chưa cấu hình GEMINI_API_KEY trong Secrets."
         
-        # 2. Thử một câu lệnh đơn giản nhất để test AI
-        response = model.generate_content("Chào bạn, hãy viết 1 câu ngắn về chứng khoán.")
-        result = response.text
-    except Exception as e:
-        # Nếu AI từ chối hoặc lỗi Key, in lỗi cụ thể ra đây
-        result = f"LỖI TỪ GOOGLE AI: {str(e)}"
+        # 2. Khởi tạo Client theo chuẩn mới nhất
+        client = genai.Client(api_key=api_key)
+        
+        # 3. Thử lấy dữ liệu chứng khoán (nếu có)
+        try:
+            df = stock_historical_data("VNINDEX", "2026-04-01", "2026-04-06", "1D", "index")
+            current_price = df.iloc[-1]['close'] if not df.empty else "N/A"
+            prompt = f"Chỉ số VN-Index hiện tại là {current_price}. Viết 1 câu nhận định ngắn."
+        except:
+            prompt = "Chào bạn, hãy viết 1 câu chúc mừng trang web chứng khoán đã hoạt động."
 
-# 3. Xuất ra file HTML
-html_content = f"<html><head><meta charset='utf-8'></head><body><h1>Kết quả kiểm tra</h1><p>{result}</p></body></html>"
+        # 4. Gọi AI
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        return f"LỖI HỆ THỐNG: {str(e)}"
+
+# Ghi kết quả ra HTML
+result = run_bot()
 with open("index.html", "w", encoding="utf-8") as f:
-    f.write(html_content)
+    f.write(f"<html><head><meta charset='utf-8'></head><body><h1>Bản tin chứng khoán</h1><p>{result}</p></body></html>")
