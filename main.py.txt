@@ -1,9 +1,7 @@
 name: Daily Stock Update
 
 on:
-  schedule:
-    - cron: '30 9 * * 1-5'
-  workflow_dispatch:
+  workflow_dispatch: # Cái này giúp xuất hiện nút bấm chạy tay
 
 jobs:
   build:
@@ -15,8 +13,7 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install dependencies
-        run: |
-          pip install vnstock google-generativeai pandas
+        run: pip install vnstock google-generativeai pandas
       - name: Run bot
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
