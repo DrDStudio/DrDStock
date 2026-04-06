@@ -2,3 +2,5 @@ vnstock
 google-generativeai
 pandas
 beautifulsoup4
+packaging
+requests
