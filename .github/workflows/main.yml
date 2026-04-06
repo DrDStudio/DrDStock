@@ -15,7 +15,9 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install dependencies
-        run: pip install vnstock google-generativeai pandas
+        run: |
+          python -m pip install --upgrade pip
+          pip install beautifulsoup4 vnstock google-generativeai pandas
       - name: Run bot
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
