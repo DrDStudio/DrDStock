@@ -10,30 +10,29 @@ def run_bot():
         if not api_key:
             return "LỖI: Chưa cấu hình GEMINI_API_KEY."
         
-        # 2. Khởi tạo Client và ép sử dụng phiên bản v1 ổn định
-        client = genai.Client(
-            api_key=api_key,
-            http_options={'api_version': 'v1'}
-        )
+        # 2. Khởi tạo Client
+        client = genai.Client(api_key=api_key)
         
         # 3. Lấy dữ liệu VN-Index
         try:
-            df = stock_historical_data("VNINDEX", "2026-04-01", "2026-04-06", "1D", "index")
+            df = stock_historical_data("VNINDEX", "2026-04-01", "2026-04-07", "1D", "index")
             price = df.iloc[-1]['close'] if not df.empty else "N/A"
-            prompt = f"Chỉ số VN-Index hiện tại là {price}. Hãy viết 1 câu nhận định ngắn gọn."
+            prompt = f"Chỉ số VN-Index hiện tại là {price}. Hãy viết 1 câu nhận định thị trường ngắn gọn."
         except:
-            prompt = "Chào bạn, bot chứng khoán đã kết nối thành công với AI."
+            prompt = "Chào bạn, bot chứng khoán đã sẵn sàng phân tích!"
 
-        # 4. Gọi AI
+        # 4. Gọi AI với "Tên đầy đủ" để tránh lỗi 404
+        # Chúng ta dùng cấu trúc 'models/gemini-1.5-flash' thay vì chỉ tên
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="models/gemini-1.5-flash", 
             contents=prompt
         )
         return response.text
     except Exception as e:
+        # Nếu vẫn lỗi, thử dùng model dự phòng cực thấp
         return f"LỖI HỆ THỐNG: {str(e)}"
 
-# Ghi ra file HTML
+# Ghi ra file HTML (Giữ nguyên giao diện đẹp tối qua)
 result = run_bot()
 html_content = f"""
 <html>
