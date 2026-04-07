@@ -1,5 +1,3 @@
-google-genai
+google-generativeai
 vnstock
 pandas
-beautifulsoup4
-packaging
