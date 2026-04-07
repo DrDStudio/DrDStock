@@ -2,7 +2,7 @@ import os
 import google.generativeai as genai
 from vnstock import *
 
-# 1. Cấu hình API
+# 1. Lấy API Key
 api_key = os.environ.get("GEMINI_API_KEY")
 
 def run_analysis():
@@ -10,37 +10,32 @@ def run_analysis():
         if not api_key:
             return "LỖI: Thiếu API Key trong GitHub Secrets."
             
-        genai.configure(api_key=api_key)
+        # 2. Cấu hình và ÉP sử dụng phiên bản v1 ổn định
+        # Đây là chìa khóa để hết lỗi 404 v1beta trong ảnh của bạn
+        genai.configure(api_key=api_key, transport='rest')
         
-        # 2. Ép sử dụng model chuẩn nhất
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # 3. Khởi tạo model với tên đầy đủ
+        model = genai.GenerativeModel(
+            model_name='models/gemini-1.5-flash'
+        )
         
-        # 3. Lấy dữ liệu chứng khoán
+        # 4. Chuẩn bị nội dung
         try:
             df = stock_historical_data("VNINDEX", "2026-04-01", "2026-04-07", "1D", "index")
             price = df.iloc[-1]['close'] if not df.empty else "N/A"
-            msg = f"Chỉ số VN-Index hiện tại là {price}. Viết 1 câu nhận định ngắn."
+            prompt = f"Chỉ số VN-Index là {price}. Nhận định ngắn 1 câu."
         except:
-            msg = "Chào bạn, AI đã kết nối thành công và sẵn sàng phân tích."
+            prompt = "Chào bạn, AI đã sẵn sàng!"
 
-        # 4. Gửi yêu cầu cho AI
-        response = model.generate_content(msg)
+        # 5. Gọi AI (Sử dụng tham số hỗ trợ bản v1)
+        response = model.generate_content(prompt)
         return response.text
         
     except Exception as e:
-        # Nếu vẫn lỗi 404, in ra chi tiết để xử lý
-        return f"LỖI TỪ GOOGLE: {str(e)}"
+        return f"LỖI TẠI BẢN V1: {str(e)}"
 
 # Ghi file HTML
 content = run_analysis()
-html = f"""
-<html><head><meta charset='utf-8'></head>
-<body style='font-family:sans-serif; padding:30px;'>
-    <h1 style='color:#1a73e8;'>Bản tin DrDStock</h1>
-    <div style='padding:20px; border-left:5px solid #1a73e8; background:#f8f9fa;'>
-        {content}
-    </div>
-</body></html>
-"""
+html = f"<html><body style='font-family:sans-serif;padding:30px;'><h1>Bản tin DrDStock</h1><p>{content}</p></body></html>"
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html)
