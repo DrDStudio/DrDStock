@@ -10,7 +10,7 @@ def run_bot():
         if not api_key:
             return "LỖI: Chưa cấu hình GEMINI_API_KEY."
         
-        # 2. Khởi tạo Client và ép sử dụng phiên bản API v1 ổn định
+        # 2. Khởi tạo Client và ép sử dụng phiên bản v1 ổn định
         client = genai.Client(
             api_key=api_key,
             http_options={'api_version': 'v1'}
@@ -18,12 +18,11 @@ def run_bot():
         
         # 3. Lấy dữ liệu VN-Index
         try:
-            # Lấy dữ liệu gần nhất (thay đổi ngày theo thời gian thực nếu cần)
             df = stock_historical_data("VNINDEX", "2026-04-01", "2026-04-06", "1D", "index")
             price = df.iloc[-1]['close'] if not df.empty else "N/A"
-            prompt = f"Chỉ số VN-Index hiện tại là {price}. Hãy viết 1 câu nhận định thị trường ngắn gọn."
+            prompt = f"Chỉ số VN-Index hiện tại là {price}. Hãy viết 1 câu nhận định ngắn gọn."
         except:
-            prompt = "Chào bạn, AI đã sẵn sàng phân tích chứng khoán cho bạn."
+            prompt = "Chào bạn, bot chứng khoán đã kết nối thành công với AI."
 
         # 4. Gọi AI
         response = client.models.generate_content(
@@ -39,12 +38,12 @@ result = run_bot()
 html_content = f"""
 <html>
 <head><meta charset='utf-8'><title>DrDStock</title></head>
-<body style='font-family: sans-serif; padding: 20px; line-height: 1.6;'>
-    <h1 style='color: #1a73e8;'>Bản tin chứng khoán</h1>
-    <div style='background: #f8f9fa; padding: 20px; border-left: 5px solid #1a73e8; border-radius: 4px;'>
+<body style='font-family: sans-serif; padding: 30px; line-height: 1.6; max-width: 800px; margin: auto;'>
+    <h1 style='color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 10px;'>Bản tin chứng khoán</h1>
+    <div style='background: #f8f9fa; padding: 20px; border-left: 5px solid #1a73e8; border-radius: 4px; font-size: 1.2em;'>
         {result}
     </div>
-    <p style='color: #666; font-size: 0.8em; margin-top: 20px;'>Cập nhật tự động bởi DrDStock Bot</p>
+    <p style='color: #666; font-size: 0.8em; margin-top: 30px;'>Cập nhật tự động bởi hệ thống DrDStock</p>
 </body>
 </html>
 """
